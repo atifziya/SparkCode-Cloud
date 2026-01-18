@@ -474,7 +474,7 @@ function App() {
           {showSimulator && (
               <div style={styles.simulatorPane}>
                   <div style={styles.simHeader}>
-                      <span>Online Circuit Simulator</span>
+                      <span>SparkCode Circuit Simulator</span>
                       <button style={styles.copyBtn} onClick={handleCopyForSim}>
                           <FaCopy /> Copy Code
                       </button>
