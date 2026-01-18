@@ -97,10 +97,10 @@ const LandingPage = () => {
                 <h4 style={{fontSize: '1.1rem', color: '#fff', margin: '2px 0'}}>Atif Ziya</h4>
                 </div>
                 <a href="https://linkedin.com/in/atifziya" target="_blank" style={styles.socialBtn}><FaLinkedin /></a>
-                <a href="https://github.com" target="_blank" style={styles.socialBtn}><FaGithub /></a>
+                <a href="https://github.com/atifziya" target="_blank" style={styles.socialBtn}><FaGithub /></a>
             </div>
             <div style={styles.copyright}>
-                <FaCopyright /> 2024 Atif Ziya. All Rights Reserved.
+                <FaCopyright /> 2026 Atif Ziya. All Rights Reserved.
             </div>
           </div>
 
