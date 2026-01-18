@@ -206,7 +206,7 @@ const LandingPage = () => {
                 <a href="https://github.com" target="_blank" rel="noreferrer" style={styles.socialBtn}><FaGithub /></a>
             </div>
             <div style={styles.copyright}>
-                <FaCopyright /> 2024 Atif Ziya. All Rights Reserved.
+                <FaCopyright /> 2026 Atif Ziya. All Rights Reserved.
             </div>
           </div>
 
