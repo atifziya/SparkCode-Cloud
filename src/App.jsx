@@ -363,8 +363,8 @@ function App() {
         <button style={styles.logoutBtn} onClick={() => signOut(auth)}><FaSignOutAlt /> Logout</button>
       </div>
 
-      {/* LIBRARY DRAWER */}
-      <div style={{...styles.libDrawer, width: isLibManagerOpen ? '380px' : '0px', opacity: isLibManagerOpen ? 1 : 0}}>
+      {/* LIBRARY DRAWER - NO TRANSITION */}
+      <div style={{...styles.libDrawer, width: isLibManagerOpen ? '380px' : '0px', display: isLibManagerOpen ? 'flex' : 'none'}}>
           <div style={styles.libHeader}>
               <h3>Library Manager</h3>
               <button onClick={() => setIsLibManagerOpen(false)} style={styles.closeBtn}><FaTimes /></button>
@@ -487,23 +487,24 @@ function App() {
   );
 }
 
+// FIX: REMOVED ALL TRANSITIONS FROM SIDEBAR & DRAWER
 const styles = {
   container: { display: 'flex', height: '100vh', width: '100vw', background: '#0f172a', color: '#fff', fontFamily: "'Segoe UI', sans-serif" },
   loader: { height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.5rem', color: '#3b82f6', background: '#0f172a' },
   
-  // SIDEBAR (FASTER TRANSITION)
-  sidebar: { background: '#1e293b', borderRight: '1px solid #334155', display: 'flex', flexDirection: 'column', transition: 'width 0.15s ease-in-out', overflow: 'hidden', zIndex: 20 },
+  // SIDEBAR (NO TRANSITION)
+  sidebar: { background: '#1e293b', borderRight: '1px solid #334155', display: 'flex', flexDirection: 'column', overflow: 'hidden', zIndex: 20 },
   profileSection: { display: 'flex', alignItems: 'center', gap: '12px', paddingBottom: '20px', borderBottom: '1px solid #334155', marginBottom: '20px' },
   userName: { fontWeight: '600', fontSize: '0.95rem' },
   userEmail: { fontSize: '0.8rem', color: '#94a3b8' },
   menuLabel: { fontSize: '0.75rem', color: '#64748b', fontWeight: 'bold', marginTop: '20px', marginBottom: '8px', letterSpacing: '0.5px' },
-  menuBtn: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer', borderRadius: '6px', fontSize: '0.9rem', width: '100%', textAlign: 'left', transition: '0.2s', ':hover': {background: '#334155'} },
+  menuBtn: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer', borderRadius: '6px', fontSize: '0.9rem', width: '100%', textAlign: 'left', ':hover': {background: '#334155'} },
   sketchList: { maxHeight: '200px', overflowY: 'auto' },
   sketchItem: { padding: '8px', background: '#0f172a', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', marginBottom: '5px', color: '#94a3b8' },
   logoutBtn: { marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: '#dc2626', border: 'none', color: '#fff', cursor: 'pointer', borderRadius: '6px', fontWeight: '600' },
   
-  // LIBRARY DRAWER
-  libDrawer: { background: '#1e293b', borderRight: '1px solid #334155', display: 'flex', flexDirection: 'column', transition: '0.3s ease-in-out', overflow: 'hidden', height: '100%', position: 'relative', zIndex: 10 },
+  // LIBRARY DRAWER (NO TRANSITION)
+  libDrawer: { background: '#1e293b', borderRight: '1px solid #334155', flexDirection: 'column', overflow: 'hidden', height: '100%', position: 'relative', zIndex: 10 },
   libHeader: { padding: '15px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0f172a' },
   closeBtn: { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem' },
   libSearchBox: { padding: '15px', borderBottom: '1px solid #334155', display: 'flex', alignItems: 'center', gap: '5px', background: '#1e293b' },
@@ -517,7 +518,7 @@ const styles = {
   libVersion: { fontSize: '0.75rem', background: '#334155', padding: '2px 6px', borderRadius: '4px', color: '#cbd5e1' },
   libAuthor: { fontSize: '0.8rem', color: '#94a3b8', marginBottom: '8px', fontStyle: 'italic' },
   libDesc: { fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '10px', lineHeight: '1.4' },
-  installBtn: { width: '100%', padding: '8px', background: '#2563eb', border: 'none', borderRadius: '4px', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: '600', transition: '0.2s', ':hover': {background: '#1d4ed8'}, ':disabled': {background: '#475569', cursor: 'not-allowed'} },
+  installBtn: { width: '100%', padding: '8px', background: '#2563eb', border: 'none', borderRadius: '4px', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: '600', ':hover': {background: '#1d4ed8'}, ':disabled': {background: '#475569', cursor: 'not-allowed'} },
 
   mainContent: { flex: 1, display: 'flex', flexDirection: 'column' },
   header: { height: '55px', background: '#1e293b', borderBottom: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px' },
