@@ -80,7 +80,7 @@ export async function uploadHexFileToArduino(hexData, board, onStatusUpdate) {
       });
     });
 
-    onStatusUpdate('Upload completed! 🎉');
+    onStatusUpdate('Upload completed!');
 
   } catch (error) {
     onStatusUpdate(`Upload Error: ${error.message}`);
