@@ -10,7 +10,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 
 // Icons
-import { FaSave, FaFolderOpen, FaDownload, FaSignOutAlt, FaUserCircle, FaBars, FaTimes, FaTrash, FaBook, FaSearch, FaCloudDownloadAlt, FaSpinner, FaCheck, FaTerminal } from 'react-icons/fa';
+import { FaSave, FaFolderOpen, FaDownload, FaSignOutAlt, FaUserCircle, FaBars, FaTimes, FaTrash, FaBook, FaSearch, FaCloudDownloadAlt, FaSpinner, FaCheck, FaTerminal, FaBolt, FaCopy } from 'react-icons/fa';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -32,6 +32,7 @@ function App() {
   // --- UI STATE ---
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLibManagerOpen, setIsLibManagerOpen] = useState(false);
+  const [showSimulator, setShowSimulator] = useState(false);
   const [savedSketches, setSavedSketches] = useState([]);
   
   // --- LIBRARY MANAGER STATE ---
@@ -43,7 +44,7 @@ function App() {
   // Refs for Serial
   const serialPortRef = useRef(null);
   const readerRef = useRef(null);
-  const readableStreamClosedRef = useRef(null); // Promise to track stream closing
+  const readableStreamClosedRef = useRef(null); 
   const keepReadingRef = useRef(false);
   
   const consoleEndRef = useRef(null);
@@ -55,14 +56,13 @@ function App() {
   const LIB_SEARCH_URL = `${BACKEND_BASE}/library/search`;
   const LIB_INSTALL_URL = `${BACKEND_BASE}/library/install`;
 
-  // Auth Listener & Welcome Message
+  // Auth Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
       if (currentUser) {
         fetchSavedSketches(currentUser.uid);
-        // FIX: Welcome message added back
         setTimeout(() => {
             addLog(`🚀 Welcome back, ${currentUser.displayName || 'Developer'}!`, 'success');
             addLog('System Ready. Select a board to begin.', 'info');
@@ -74,7 +74,16 @@ function App() {
 
   useEffect(() => { consoleEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [logs]);
 
-  // --- LOCAL DOWNLOAD FUNCTION ---
+  // --- HELPER FOR WOKWI BOARD SELECTION ---
+  const getWokwiBoardSlug = () => {
+    switch(board) {
+        case 'arduino:avr:nano': return 'arduino-nano';
+        case 'arduino:avr:mega': return 'arduino-mega';
+        case 'arduino:avr:uno': default: return 'arduino-uno';
+    }
+  };
+
+  // --- FUNCTIONS ---
   const handleDownload = () => {
     const codeToSave = mode === 'text' ? textCode : blockGeneratedCode;
     const blob = new Blob([codeToSave], { type: 'text/plain' });
@@ -87,25 +96,19 @@ function App() {
     addLog('⬇️ Code downloaded to computer.', 'success');
   };
 
-  // --- LIBRARY MANAGER LOGIC ---
   const handleLibSearch = async () => {
       if(!libSearchQuery.trim()) return;
-      
       setIsSearchingLib(true);
       setLibSearchResults([]); 
-
       try {
           const res = await fetch(LIB_SEARCH_URL, {
               method: 'POST',
               headers: {'Content-Type': 'application/json'},
               body: JSON.stringify({ query: libSearchQuery })
           });
-
           if (!res.ok) throw new Error("Server Search Failed");
-          
           const data = await res.json();
           setLibSearchResults(data.libraries || []);
-
       } catch (e) {
           console.error(e);
           addLog(`❌ Lib Search Error: ${e.message}`, 'error');
@@ -117,27 +120,22 @@ function App() {
   const handleLibInstall = async (libName, libVersion) => {
       setInstallingLibId(libName);
       addLog(`⬇️ Installing: ${libName}...`, 'info');
-
       try {
           const res = await fetch(LIB_INSTALL_URL, {
               method: 'POST',
               headers: {'Content-Type': 'application/json'},
               body: JSON.stringify({ name: libName }) 
           });
-
           const data = await res.json();
-
           if(!res.ok || data.error) throw new Error(data.error || "Installation failed");
           
           addLog(`✅ Installed: ${libName}`, 'success');
-          
           if(mode === 'text') {
              const headerName = libName.replace(/\s+/g, '') + '.h'; 
              if(!textCode.includes(headerName)) {
                  setTextCode(`#include <${headerName}>\n` + textCode);
              }
           }
-
       } catch (e) {
           addLog(`❌ Install Error: ${e.message}`, 'error');
       } finally {
@@ -145,7 +143,6 @@ function App() {
       }
   };
 
-  // --- FIREBASE FUNCTIONS ---
   const fetchSavedSketches = async (userId) => {
     try {
       const q = query(collection(db, "sketches"), where("userId", "==", userId));
@@ -189,7 +186,12 @@ function App() {
 
   const getCurrentCode = () => mode === 'text' ? textCode : blockGeneratedCode;
 
-  // --- COMPILE & UPLOAD ---
+  const handleCopyForSim = () => {
+    const code = getCurrentCode();
+    navigator.clipboard.writeText(code);
+    addLog("📋 Code copied! Paste it into the Simulator.", "success");
+  };
+
   const handleCompile = async () => {
     const codeToCompile = getCurrentCode();
     if(!codeToCompile || codeToCompile.trim() === "") {
@@ -237,12 +239,11 @@ function App() {
     }
   };
 
-  // --- SERIAL MONITOR (ROBUST CLOSE) ---
   const connectSerial = async () => {
       if (!navigator.serial) return alert("Web Serial not supported.");
       try {
           const port = await navigator.serial.requestPort();
-          await port.open({ baudRate: parseInt(baudRate) }); // Using selected Baud Rate
+          await port.open({ baudRate: parseInt(baudRate) });
           
           serialPortRef.current = port;
           const textDecoder = new TextDecoderStream();
@@ -260,28 +261,17 @@ function App() {
 
   const disconnectSerial = async () => {
     addLog('🔌 Closing Serial Port...', 'warning');
-    keepReadingRef.current = false; // Stop the loop
+    keepReadingRef.current = false; 
     
-    // Force cancel reader
     if (readerRef.current) {
-        try {
-            await readerRef.current.cancel();
-        } catch (e) { console.warn(e); }
+        try { await readerRef.current.cancel(); } catch (e) { console.warn(e); }
         readerRef.current = null;
     }
-    
-    // Wait for stream to unlock
     if (readableStreamClosedRef.current) {
-        try {
-            await readableStreamClosedRef.current.catch(() => {}); 
-        } catch (e) {}
+        try { await readableStreamClosedRef.current.catch(() => {}); } catch (e) {}
     }
-
-    // Close port
     if (serialPortRef.current) {
-        try {
-            await serialPortRef.current.close();
-        } catch (e) { console.warn(e); }
+        try { await serialPortRef.current.close(); } catch (e) { console.warn(e); }
         serialPortRef.current = null;
     }
 
@@ -299,7 +289,7 @@ function App() {
                   buffer += value;
                   if (buffer.includes('\n')) {
                       const lines = buffer.split('\n');
-                      buffer = lines.pop(); // Keep incomplete chunk
+                      buffer = lines.pop(); 
                       lines.forEach(line => {
                           const clean = line.replace(/\r/g, '');
                           if (clean) addLog(clean, 'serial');
@@ -308,10 +298,8 @@ function App() {
               }
           }
       } catch (e) {
-          // Ignore error if intentional close
           if (keepReadingRef.current) console.error(e);
       } finally { 
-          // Ensure lock is released if loop breaks unexpectedly
           if (reader) reader.releaseLock(); 
       }
   };
@@ -321,8 +309,13 @@ function App() {
 
   return (
     <div style={styles.container}>
-      {/* SIDEBAR */}
-      <div style={{...styles.sidebar, width: isSidebarOpen ? '260px' : '0px', padding: isSidebarOpen ? '20px' : '0'}}>
+      {/* SIDEBAR - STRICT INSTANT TOGGLE */}
+      <div style={{
+          ...styles.sidebar, 
+          width: isSidebarOpen ? '260px' : '0px', 
+          minWidth: isSidebarOpen ? '260px' : '0px', // Forces Instant Block Size
+          padding: isSidebarOpen ? '20px' : '0' 
+      }}>
         <div style={styles.profileSection}>
             <FaUserCircle size={35} color="#3b82f6" />
             <div style={styles.profileInfo}>
@@ -334,7 +327,6 @@ function App() {
         <div style={styles.sidebarMenu}>
             <div style={styles.menuLabel}>PROJECT</div>
             <button style={styles.menuBtn} onClick={handleSaveCode}><FaSave /> Save Cloud</button>
-            {/* Restored Download Button */}
             <button style={styles.menuBtn} onClick={handleDownload}><FaDownload /> Download File</button>
             <button style={styles.menuBtn} onClick={() => fileInputRef.current.click()}><FaFolderOpen /> Open File</button>
             <input type="file" ref={fileInputRef} style={{display:'none'}} onChange={(e) => {
@@ -364,7 +356,7 @@ function App() {
       </div>
 
       {/* LIBRARY DRAWER */}
-      <div style={{...styles.libDrawer, width: isLibManagerOpen ? '380px' : '0px', opacity: isLibManagerOpen ? 1 : 0}}>
+      <div style={{...styles.libDrawer, width: isLibManagerOpen ? '380px' : '0px', display: isLibManagerOpen ? 'flex' : 'none'}}>
           <div style={styles.libHeader}>
               <h3>Library Manager</h3>
               <button onClick={() => setIsLibManagerOpen(false)} style={styles.closeBtn}><FaTimes /></button>
@@ -430,13 +422,21 @@ function App() {
                 <button style={{...styles.toggleBtn, ...(mode==='text'?styles.activeToggle:{})}} onClick={()=>setMode('text')}>Text</button>
                 <button style={{...styles.toggleBtn, ...(mode==='block'?styles.activeToggle:{})}} onClick={()=>setMode('block')}>Block</button>
              </div>
+            
+            {/* SIMULATOR BUTTON */}
+            <button 
+                onClick={() => setShowSimulator(!showSimulator)} 
+                style={{...styles.btn, background: showSimulator ? '#9333ea' : '#334155', display: 'flex', alignItems: 'center', gap: '5px'}}
+            >
+               <FaBolt /> {showSimulator ? 'Close Sim' : 'Simulator'}
+            </button>
+
             <select value={board} onChange={e => setBoard(e.target.value)} style={styles.select}>
               <option value="arduino:avr:uno">Arduino Uno</option>
               <option value="arduino:avr:nano">Arduino Nano</option>
               <option value="arduino:avr:mega">Arduino Mega</option>
             </select>
 
-            {/* RESTORED BAUD RATE SELECTOR */}
             <select value={baudRate} onChange={e => setBaudRate(e.target.value)} style={styles.selectSmall}>
               <option value="9600">9600 Baud</option>
               <option value="115200">115200 Baud</option>
@@ -456,14 +456,39 @@ function App() {
           </div>
         </header>
 
+        {/* WORKSPACE AREA WITH SPLIT VIEW */}
         <div style={styles.workspace}>
-          {mode === 'text' ? (
-             <Editor height="100%" defaultLanguage="cpp" theme="vs-dark" value={textCode} onChange={setTextCode} options={{ minimap: { enabled: false }, fontSize: 15 }} />
-          ) : (
-            <div style={{display:'flex', height:'100%'}}>
-                <div style={{flex: 3, minWidth:0}}><BlocklyEditor onCodeChange={setBlockGeneratedCode} /></div>
-                <div style={{flex: 1, background:'#1e1e1e', minWidth:0}}><Editor height="100%" defaultLanguage="cpp" theme="vs-dark" value={blockGeneratedCode} options={{ readOnly: true, minimap: { enabled: false }}} /></div>
-            </div>
+          {/* LEFT SIDE: EDITOR */}
+          <div style={{flex: 1, height: '100%', minWidth: 0, display: 'flex', flexDirection: 'column'}}>
+              {mode === 'text' ? (
+                <Editor height="100%" defaultLanguage="cpp" theme="vs-dark" value={textCode} onChange={setTextCode} options={{ minimap: { enabled: false }, fontSize: 15 }} />
+              ) : (
+                <div style={{display:'flex', height:'100%'}}>
+                    <div style={{flex: 3, minWidth:0}}><BlocklyEditor onCodeChange={setBlockGeneratedCode} /></div>
+                    <div style={{flex: 1, background:'#1e1e1e', minWidth:0}}><Editor height="100%" defaultLanguage="cpp" theme="vs-dark" value={blockGeneratedCode} options={{ readOnly: true, minimap: { enabled: false }}} /></div>
+                </div>
+              )}
+          </div>
+
+          {/* RIGHT SIDE: SIMULATOR IFRAME */}
+          {showSimulator && (
+              <div style={styles.simulatorPane}>
+                  <div style={styles.simHeader}>
+                      <span>Online Circuit Simulator</span>
+                      <button style={styles.copyBtn} onClick={handleCopyForSim}>
+                          <FaCopy /> Copy Code
+                      </button>
+                  </div>
+                  {/* WRAPPER DIV WITH ADJUSTED CROP (-40px) */}
+                  <div style={styles.simContent}>
+                      <iframe 
+                        // DYNAMIC WOKWI URL based on selected board
+                        src={`https://wokwi.com/projects/new/${getWokwiBoardSlug()}?dark=1`} 
+                        title="Wokwi Simulator"
+                        style={styles.simFrame}
+                      />
+                  </div>
+              </div>
           )}
         </div>
 
@@ -491,33 +516,45 @@ const styles = {
   container: { display: 'flex', height: '100vh', width: '100vw', background: '#0f172a', color: '#fff', fontFamily: "'Segoe UI', sans-serif" },
   loader: { height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.5rem', color: '#3b82f6', background: '#0f172a' },
   
-  // SIDEBAR (FASTER TRANSITION)
-  sidebar: { background: '#1e293b', borderRight: '1px solid #334155', display: 'flex', flexDirection: 'column', transition: 'width 0.15s ease-in-out', overflow: 'hidden', zIndex: 20 },
+  // SIDEBAR - ULTRA FAST FIX
+  sidebar: { 
+    background: '#1e293b', 
+    borderRight: '1px solid #334155', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    overflow: 'hidden', 
+    zIndex: 20,
+    flexShrink: 0, // IMPORTANT: Prevents layout recalculation lag
+    whiteSpace: 'nowrap', // Prevents text reflow lag
+    transition: '0s', // Forced Zero Delay
+    transitionDuration: '0s', 
+    transitionProperty: 'none'
+  },
+  
   profileSection: { display: 'flex', alignItems: 'center', gap: '12px', paddingBottom: '20px', borderBottom: '1px solid #334155', marginBottom: '20px' },
   userName: { fontWeight: '600', fontSize: '0.95rem' },
   userEmail: { fontSize: '0.8rem', color: '#94a3b8' },
   menuLabel: { fontSize: '0.75rem', color: '#64748b', fontWeight: 'bold', marginTop: '20px', marginBottom: '8px', letterSpacing: '0.5px' },
-  menuBtn: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer', borderRadius: '6px', fontSize: '0.9rem', width: '100%', textAlign: 'left', transition: '0.2s', ':hover': {background: '#334155'} },
+  menuBtn: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer', borderRadius: '6px', fontSize: '0.9rem', width: '100%', textAlign: 'left', ':hover': {background: '#334155'} },
   sketchList: { maxHeight: '200px', overflowY: 'auto' },
   sketchItem: { padding: '8px', background: '#0f172a', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', marginBottom: '5px', color: '#94a3b8' },
   logoutBtn: { marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: '#dc2626', border: 'none', color: '#fff', cursor: 'pointer', borderRadius: '6px', fontWeight: '600' },
   
   // LIBRARY DRAWER
-  libDrawer: { background: '#1e293b', borderRight: '1px solid #334155', display: 'flex', flexDirection: 'column', transition: '0.3s ease-in-out', overflow: 'hidden', height: '100%', position: 'relative', zIndex: 10 },
+  libDrawer: { background: '#1e293b', borderRight: '1px solid #334155', flexDirection: 'column', overflow: 'hidden', height: '100%', position: 'relative', zIndex: 10 },
   libHeader: { padding: '15px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0f172a' },
   closeBtn: { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem' },
   libSearchBox: { padding: '15px', borderBottom: '1px solid #334155', display: 'flex', alignItems: 'center', gap: '5px', background: '#1e293b' },
   libInput: { background: '#0f172a', border: '1px solid #334155', padding:'8px', borderRadius:'4px', color: '#fff', width: '100%', outline: 'none', fontSize: '0.9rem' },
   searchBtn: { background: '#3b82f6', color:'white', border:'none', padding:'8px 12px', borderRadius:'4px', cursor:'pointer' },
   libListContainer: { flex: 1, overflowY: 'auto', padding: '10px', background: '#0f172a' },
-  
   libCard: { background: '#1e293b', padding: '12px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #334155' },
   libCardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' },
   libName: { fontWeight: '700', fontSize: '0.95rem', color: '#fff' },
   libVersion: { fontSize: '0.75rem', background: '#334155', padding: '2px 6px', borderRadius: '4px', color: '#cbd5e1' },
   libAuthor: { fontSize: '0.8rem', color: '#94a3b8', marginBottom: '8px', fontStyle: 'italic' },
   libDesc: { fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '10px', lineHeight: '1.4' },
-  installBtn: { width: '100%', padding: '8px', background: '#2563eb', border: 'none', borderRadius: '4px', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: '600', transition: '0.2s', ':hover': {background: '#1d4ed8'}, ':disabled': {background: '#475569', cursor: 'not-allowed'} },
+  installBtn: { width: '100%', padding: '8px', background: '#2563eb', border: 'none', borderRadius: '4px', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: '600', ':hover': {background: '#1d4ed8'}, ':disabled': {background: '#475569', cursor: 'not-allowed'} },
 
   mainContent: { flex: 1, display: 'flex', flexDirection: 'column' },
   header: { height: '55px', background: '#1e293b', borderBottom: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px' },
@@ -531,7 +568,18 @@ const styles = {
   selectSmall: { padding: '6px 10px', borderRadius: '6px', border: '1px solid #475569', background: '#1e293b', color: '#fff', fontSize: '0.85rem' },
   btn: { padding: '6px 14px', border: 'none', borderRadius: '6px', color: '#fff', fontWeight: '600', cursor: 'pointer', fontSize: '0.85rem' },
   
-  workspace: { flex: 1, position: 'relative', overflow: 'hidden' },
+  // WORKSPACE
+  workspace: { flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'row' },
+  
+  // SIMULATOR STYLES
+  simulatorPane: { flex: 1, borderLeft: '2px solid #334155', display: 'flex', flexDirection: 'column', background: '#0f172a' },
+  simHeader: { height: '40px', background: '#1e293b', borderBottom: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 10px', fontSize: '0.9rem', fontWeight: '600', color: '#cbd5e1', zIndex: 5 },
+  simContent: { flex: 1, overflow: 'hidden', position: 'relative' },
+  
+  // CROP FIX (-40px) and Dynamic Board Logic
+  simFrame: { width: '100%', height: 'calc(100% + 40px)', border: 'none', marginTop: '-40px' },
+  copyBtn: { display: 'flex', alignItems: 'center', gap: '6px', background: '#3b82f6', border: 'none', color: 'white', padding: '4px 10px', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' },
+
   terminal: { height: '180px', background: '#0f172a', borderTop: '1px solid #334155', display: 'flex', flexDirection: 'column' },
   terminalHeader: { padding: '5px 15px', background: '#1e293b', fontSize: '0.75rem', fontWeight: 'bold', color: '#94a3b8', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' },
   logsContainer: { flex: 1, padding: '10px', overflowY: 'auto', fontFamily: 'Consolas, monospace', fontSize: '0.85rem' },
