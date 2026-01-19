@@ -4,7 +4,7 @@ import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPass
 import { doc, setDoc } from 'firebase/firestore'; 
 import { auth, googleProvider, db } from './firebase';
 // IMPORT YOUR LOGO HERE
-import logo from './assets/logo.png'; 
+import logo from './assets/logo_new.png'; 
 import { FaGoogle, FaBolt, FaLinkedin, FaGithub, FaArrowRight, FaUser, FaLock, FaEnvelope, FaPhone, FaCopyright, FaMagic } from 'react-icons/fa';
 
 const LandingPage = () => {
