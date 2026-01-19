@@ -89,6 +89,8 @@ const LandingPage = () => {
     // HEADER
     logoHeader: { display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '10px', flexDirection: isMobile ? 'column' : 'row' },
     logoImage: { height: isMobile ? '50px' : '60px', width: 'auto', objectFit: 'contain' }, 
+    
+    // *** NAME CHANGED HERE: SparkCode -> ZylixCode ***
     mainTitle: { fontSize: isMobile ? '2.5rem' : '4rem', fontWeight: '800', margin: 0, letterSpacing: '-1.5px', color: '#fff', lineHeight: '1' }, // Font Size Fix
 
     // Sub Headline
@@ -161,8 +163,8 @@ const LandingPage = () => {
           
           {/* 2. BRAND NAME WITH LOGO */}
           <div style={styles.logoHeader}>
-            <img src={logo} alt="SparkCode Logo" style={styles.logoImage} />
-            <h1 style={styles.mainTitle}>SparkCode <span style={{color: '#3b82f6'}}>Cloud</span></h1>
+            <img src={logo} alt="ZylixCode Logo" style={styles.logoImage} />
+            <h1 style={styles.mainTitle}>ZylixCode <span style={{color: '#3b82f6'}}>Cloud</span></h1>
           </div>
 
           {/* 3. HEADLINE */}
