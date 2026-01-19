@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { uploadHexFileToArduino } from './uploader';
@@ -18,7 +19,8 @@ function App() {
 
   // --- EDITOR STATE ---
   const [mode, setMode] = useState('text');
-  const [textCode, setTextCode] = useState(`void setup() {\n  Serial.begin(9600);\n  pinMode(LED_BUILTIN, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(LED_BUILTIN, HIGH);\n  Serial.println("SparkCode Active");\n  delay(1000);\n  digitalWrite(LED_BUILTIN, LOW);\n  delay(1000);\n}`);
+  // *** NAME UPDATED IN DEFAULT CODE ***
+  const [textCode, setTextCode] = useState(`void setup() {\n  Serial.begin(9600);\n  pinMode(LED_BUILTIN, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(LED_BUILTIN, HIGH);\n  Serial.println("ZylixCode Active");\n  delay(1000);\n  digitalWrite(LED_BUILTIN, LOW);\n  delay(1000);\n}`);
   const [blockGeneratedCode, setBlockGeneratedCode] = useState('');
   
   // --- HARDWARE STATE ---
@@ -304,7 +306,7 @@ function App() {
       }
   };
 
-  if (loading) return <div style={styles.loader}>Loading SparkCode...</div>;
+  if (loading) return <div style={styles.loader}>Loading ZylixCode...</div>;
   if (!user) return <LandingPage />;
 
   return (
@@ -320,7 +322,8 @@ function App() {
             <FaUserCircle size={35} color="#3b82f6" />
             <div style={styles.profileInfo}>
                 <div style={styles.userName}>{user.displayName || 'Developer'}</div>
-                <div style={styles.userEmail}>SparkCode Pro</div>
+                {/* *** NAME UPDATED IN PROFILE *** */}
+                <div style={styles.userEmail}>ZylixCode Pro</div>
             </div>
         </div>
 
@@ -414,7 +417,8 @@ function App() {
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} style={styles.iconBtn}>
                {isSidebarOpen ? <FaTimes /> : <FaBars />}
             </button>
-            <div style={styles.logo}>SparkCode <span style={{color:'#3b82f6'}}>Cloud</span></div>
+            {/* *** NAME UPDATED IN TOP HEADER *** */}
+            <div style={styles.logo}>ZylixCode <span style={{color:'#3b82f6'}}>Cloud</span></div>
           </div>
           
           <div style={styles.toolbar}>
@@ -474,7 +478,8 @@ function App() {
           {showSimulator && (
               <div style={styles.simulatorPane}>
                   <div style={styles.simHeader}>
-                      <span>SparkCode Circuit Simulator</span>
+                      {/* *** NAME UPDATED IN SIMULATOR HEADER *** */}
+                      <span>ZylixCode Circuit Simulator</span>
                       <button style={styles.copyBtn} onClick={handleCopyForSim}>
                           <FaCopy /> Copy Code
                       </button>
