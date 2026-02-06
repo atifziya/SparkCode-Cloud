@@ -215,9 +215,9 @@ const LandingPage = () => {
 
             {/* *** NEW: STEMROBO MENTION *** */}
             <div style={styles.stemLink}>
-                Proudly innovated by developers from <br />
+                Innovated by developers from <br />
                 <a href="https://www.stemrobo.com" target="_blank" rel="noreferrer" style={styles.stemAnchor}>
-                   <FaBuilding style={{marginBottom: '-2px', marginRight: '4px'}}/> StemRobo Technology Ltd. ↗
+                   <FaBuilding style={{marginBottom: '-2px', marginRight: '4px'}}/> STEMROBO Technology Ltd. ↗
                 </a>
             </div>
 
