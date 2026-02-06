@@ -4,8 +4,8 @@ import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPass
 import { doc, setDoc } from 'firebase/firestore'; 
 import { auth, googleProvider, db } from './firebase';
 // IMPORT YOUR LOGO HERE
-import logo from './assets/logo_new.png'; 
-import { FaGoogle, FaBolt, FaLinkedin, FaGithub, FaArrowRight, FaUser, FaLock, FaEnvelope, FaPhone, FaCopyright, FaMagic } from 'react-icons/fa';
+import logo from './assets/logo.png'; 
+import { FaGoogle, FaBolt, FaLinkedin, FaGithub, FaArrowRight, FaUser, FaLock, FaEnvelope, FaPhone, FaCopyright, FaMagic, FaBuilding } from 'react-icons/fa';
 
 const LandingPage = () => {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -109,6 +109,11 @@ const LandingPage = () => {
     devProfile: { display: 'flex', alignItems: 'center', gap: '15px', padding: '12px 20px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', width: 'fit-content' },
     avatar: { width: '40px', height: '40px', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize:'1rem' },
     socialBtn: { color: '#94a3b8', fontSize: '1.2rem', transition: 'transform 0.2s', ':hover': { transform: 'scale(1.1)', color: '#fff' } },
+    
+    // STEMROBO LINK SECTION
+    stemLink: { marginTop: '5px', fontSize: '0.8rem', color: '#64748b', lineHeight: '1.5' },
+    stemAnchor: { color: '#3b82f6', textDecoration: 'none', fontWeight: '600', transition: 'color 0.2s' },
+
     copyright: { color: '#475569', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '5px' },
 
     // Right Side
@@ -196,7 +201,7 @@ const LandingPage = () => {
             </div>
           </div>
 
-          {/* Developer & Copyright */}
+          {/* Developer & Copyright Section */}
           <div style={styles.devSection}>
             <div style={styles.devProfile}>
                 <div style={styles.avatar}>AZ</div>
@@ -207,6 +212,15 @@ const LandingPage = () => {
                 <a href="https://linkedin.com/in/atifziya" target="_blank" rel="noreferrer" style={styles.socialBtn}><FaLinkedin /></a>
                 <a href="https://github.com" target="_blank" rel="noreferrer" style={styles.socialBtn}><FaGithub /></a>
             </div>
+
+            {/* *** NEW: STEMROBO MENTION *** */}
+            <div style={styles.stemLink}>
+                Proudly innovated by developers from <br />
+                <a href="https://www.stemrobo.com" target="_blank" rel="noreferrer" style={styles.stemAnchor}>
+                   <FaBuilding style={{marginBottom: '-2px', marginRight: '4px'}}/> StemRobo Technology Ltd. ↗
+                </a>
+            </div>
+
             <div style={styles.copyright}>
                 <FaCopyright /> 2026 Atif Ziya. All Rights Reserved.
             </div>
