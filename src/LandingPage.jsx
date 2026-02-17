@@ -214,12 +214,7 @@ const LandingPage = () => {
             </div>
 
             {/* *** NEW: STEMROBO MENTION *** */}
-            <div style={styles.stemLink}>
-                Innovated by developers from <br />
-                <a href="https://www.stemrobo.com" target="_blank" rel="noreferrer" style={styles.stemAnchor}>
-                   <FaBuilding style={{marginBottom: '-2px', marginRight: '4px'}}/> STEMROBO Technology Ltd. ↗
-                </a>
-            </div>
+            
 
             <div style={styles.copyright}>
                 <FaCopyright /> 2026 Atif Ziya. All Rights Reserved.
