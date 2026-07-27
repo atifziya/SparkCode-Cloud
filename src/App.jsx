@@ -53,7 +53,7 @@ function App() {
   const fileInputRef = useRef(null);
 
   // --- API CONFIGURATION ---
-  const BACKEND_BASE = 'https://api.zylixcodecloud.in'; 
+  const BACKEND_BASE = import.meta.env.VITE_BACKEND_URL || 'https://arduino-compiler-244739214850.asia-south1.run.app'; 
   const BACKEND_URL = `${BACKEND_BASE}/compile`;
   const LIB_SEARCH_URL = `${BACKEND_BASE}/library/search`;
   const LIB_INSTALL_URL = `${BACKEND_BASE}/library/install`;
